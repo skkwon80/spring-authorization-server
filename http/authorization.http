@@ -1,0 +1,31 @@
+### get code
+GET http://localhost:8080/oauth2/authorize?response_type=code&client_id=client&redirect_uri=http://localhost:8080/code&scope=openid
+
+### get access-token (authorization_code)
+POST http://localhost:8080/oauth2/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic Y2xpZW50OnNlY3JldA==
+
+grant_type = authorization_code &
+client_id = client &
+client_secret = secret &
+redirect_uri = http://localhost:8080/code &
+code = i7FTJxoNyXg0rwJoUzMZxgrwzsa_xwHou3Gus5Cb0IiQS6FLGntcLRNFdQgUt0jxW8liaM-nKrolmtdpH-Ou7T5Z8CdqU4-hMal3OpLg0b7TAsxroUl3cewozJA07_vY
+
+### get access-token (client_credentials)
+POST http://localhost:8080/oauth2/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic Y2xpZW50OnNlY3JldA==
+
+grant_type = client_credentials
+
+### me
+GET http://localhost:8080/users/me
+Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiYXVkIjoiY2xpZW50IiwibmJmIjoxNzAxOTMwNDE5LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJleHAiOjE3MDE5Mzc2MTksImlhdCI6MTcwMTkzMDQxOSwianRpIjoiMzgwODU3ZGEtMzY0MC00ZDBkLTgyYTgtNGRmZjgwMWJkYTM2In0.SxELYJudTqbPxbE-kdwoM20GzeQcoosgLW4jJW4sLEgBOAmOHLYhU7HkyLF5yZuklD2ZpviFpaYlBjR6CTXw34rcfB7ScAS3RMeORCFJ-usBYzL7oQ9KhlSLXfPmH2mYVrMRoduBptYDO9jXm0LsNB_3okuKOoRLC4RTriDjAfUXf9P0erIVsOMx0ZaT6GX39XrBre9SH_nnYxGsl--qQNeNX65IQe_90QtzVCuV1ErYJCiCblM94pK5UrXuPpdATf4x3SUvpupOddZINGYzc5IwCHoj_P7j8X4ztkXmR4mTZDEJ_q9C24JkXkr2czow2LGItGXBK7fayoSfRhcDSw
+
+### introspect
+POST http://localhost:8080/oauth2/introspect
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic Y2xpZW50OnNlY3JldA==
+
+token = eyJraWQiOiI3OWI4NjliNy1iY2NlLTRhOTctOWU4Ny0zNmFkOWVlYjdkYjYiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyIiwiYXVkIjoiY2xpZW50IiwibmJmIjoxNzAxNjc5MzQ0LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAiLCJleHAiOjE3MDE2ODY1NDQsImlhdCI6MTcwMTY3OTM0NCwianRpIjoiY2JhYWY5YWMtZTk3Yy00NjMwLTllZTItNTg1YWZlNjdlN2ZjIn0.Iw8cPl5OuYSMkZ1tTYgSSHj58IWiZ7sJrwbf8rZrVAjZizyPoD-LRipszfg-_qZWNkyR1VL9CSDgRNEOkYkpP96flCXUWcF3eJ-toDx7biF1h6sj-IvzOxYjpJL-fQOYVVELv3XL0HLoT75kyqKV-4-HbUVGUr4MtJRnY4hCqp1eQeBbPZCLel6A87Z6U4NW-0MuBTN_Ni811XrWH2f6aQ3A8p-DFULvMkaepniLJoOOK0yUJkJeIaMtfFLJfm1QlQQsFFBbBjYlfWocCAtgK_iFLRVdgc6D7MfUBVL_TYnUFMLdxEmyfR1qscw46o-7b0NFpMdZFbyTtI8hZoG0Sg

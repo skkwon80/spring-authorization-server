@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    active: jwt # jwt, opaquetoken
+
+server:
+  port: 8081
+
+logging:
+  level:
+    root: debug
