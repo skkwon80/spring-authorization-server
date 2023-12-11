@@ -1,8 +1,9 @@
 spring:
   profiles:
-    active:
-      - oauth2-client
-      - jwt # jwt, opaquetoken
+    active: jwt # jwt, opaquetoken
+  config:
+    import:
+      - oauth2-client.yml
   datasource:
     url: jdbc:h2:mem:authorization
     driver-class-name: org.h2.Driver
