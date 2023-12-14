@@ -1,5 +1,5 @@
 ### get code
-GET http://localhost:8080/oauth2/authorize?response_type=code&client_id=client&redirect_uri=http://localhost:8080/code&scope=openid
+GET http://localhost:8080/oauth2/authorize?response_type=code&client_id=client&redirect_uri=http://localhost:8080/code
 
 ### get access-token (authorization_code)
 POST http://localhost:8080/oauth2/token
@@ -10,7 +10,7 @@ grant_type = authorization_code &
 client_id = client &
 client_secret = secret &
 redirect_uri = http://localhost:8080/code &
-code = i7FTJxoNyXg0rwJoUzMZxgrwzsa_xwHou3Gus5Cb0IiQS6FLGntcLRNFdQgUt0jxW8liaM-nKrolmtdpH-Ou7T5Z8CdqU4-hMal3OpLg0b7TAsxroUl3cewozJA07_vY
+code = 8Yq015VaqVzykMrbHwMI5634ym1bediL2o7ccgPqKIlC7EqtVc5cKNC0tfvkNU09zS3yABkwYKIK4wxMAo1ZjvqRREAmUh73i8_i42ra7vSTOcDQin5J2kHVEs7cXpkB
 
 ### get access-token (client_credentials)
 POST http://localhost:8080/oauth2/token

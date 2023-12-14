@@ -17,9 +17,8 @@ class CustomUserDetailService(
             ?: throw UsernameNotFoundException("user is not exists")
     }
 
-    private fun createUser(user: User) = org.springframework.security.core.userdetails.User.builder()
-        .username(user.username)
-        .password(user.password)
-        .roles()
-        .build()
+    private fun createUser(user: User) = CustomUserPrincipal(
+        user.uuid,
+        user.password
+    )
 }

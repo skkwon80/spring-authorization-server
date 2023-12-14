@@ -1,5 +1,6 @@
 package com.example.authres.config
 
+import com.example.authres.config.security.userinfo.OAuth2UserInfoFactory.getOAuth2UserInfo
 import com.example.authres.entity.User
 import com.example.authres.repository.UserRepository
 import org.springframework.beans.factory.annotation.Value
@@ -12,6 +13,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.session.SessionRegistry
 import org.springframework.security.core.session.SessionRegistryImpl
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User
+import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter
 import org.springframework.security.web.session.HttpSessionEventPublisher
@@ -24,7 +30,9 @@ import java.util.*
 class DefaultSecurityConfig(
     @Value("\${spring.profiles.active}") val activeProfile: String,
     val userRepository: UserRepository,
-    val passwordEncoder: BCryptPasswordEncoder
+    val passwordEncoder: BCryptPasswordEncoder,
+    val clientRegistrationRepository: ClientRegistrationRepository,
+    val usrDetailService: CustomUserDetailService
 ) {
     @Bean
     @Throws(Exception::class)
@@ -50,40 +58,96 @@ class DefaultSecurityConfig(
                 "jwt" -> resource.jwt(withDefaults())
                 "opaquetoken" -> resource.opaqueToken(withDefaults())
             }
-        }.oauth2Login {
-            it.permitAll()
+        }.oauth2Login { oauth2Login ->
+            oauth2Login.permitAll()
+//            oauth2Login.authorizationEndpoint { authorizationEndpoint ->
+//                authorizationEndpoint.authorizationRequestResolver(object : OAuth2AuthorizationRequestResolver {
+//                    override fun resolve(request: HttpServletRequest): OAuth2AuthorizationRequest? {
+//                        println("authorizationRequestResolver1")
+//                        val authorizationRequest = DefaultOAuth2AuthorizationRequestResolver(
+//                            clientRegistrationRepository,
+//                            OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI
+//                        ).resolve(request) ?: return null
+//
+//                        return OAuth2AuthorizationRequest.from(authorizationRequest).build()
+//                    }
+//
+//                    override fun resolve(
+//                        request: HttpServletRequest,
+//                        clientRegistrationId: String
+//                    ): OAuth2AuthorizationRequest? {
+//                        println("authorizationRequestResolver2")
+//                        return null
+//                    }
+//                })
+//                authorizationEndpoint.authorizationRequestRepository(object :
+//                    AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
+//                    override fun loadAuthorizationRequest(request: HttpServletRequest?): OAuth2AuthorizationRequest? {
+//                        println("loadAuthorizationRequest")
+//                        return null
+//                    }
+//
+//                    override fun removeAuthorizationRequest(
+//                        request: HttpServletRequest?,
+//                        response: HttpServletResponse?
+//                    ): OAuth2AuthorizationRequest? {
+//                        println("removeAuthorizationRequest")
+//                        return null
+//                    }
+//
+//                    override fun saveAuthorizationRequest(
+//                        authorizationRequest: OAuth2AuthorizationRequest?,
+//                        request: HttpServletRequest?,
+//                        response: HttpServletResponse?
+//                    ) {
+//                        println("saveAuthorizationRequest")
+//                    }
+//                })
+//            }
+            oauth2Login.userInfoEndpoint { userInfoEndpoint ->
+                userInfoEndpoint.userService(object : DefaultOAuth2UserService() {
+                    override fun loadUser(userRequest: OAuth2UserRequest): OAuth2User {
+                        val delegate = DefaultOAuth2UserService()
+                        val oAuth2User = delegate.loadUser(userRequest)
+                        val registrationId = userRequest.clientRegistration.registrationId
+                        val oAuth2UserInfo =
+                            getOAuth2UserInfo(registrationId, super.loadUser(userRequest).attributes)
+
+                        println(userRequest.accessToken.tokenValue)
+                        println(registrationId)
+                        println(oAuth2UserInfo)
+                        println("save or update user")
+
+                        return DefaultOAuth2User(
+                            setOf(),
+                            oAuth2User.attributes,
+                            userRequest.clientRegistration.providerDetails.userInfoEndpoint.userNameAttributeName
+                        )
+                    }
+                })
+            }
+            oauth2Login.successHandler { request, response, authentication ->
+                println("successHandler")
+            }
+            oauth2Login.failureHandler { request, response, exception ->
+                println("failureHandler")
+            }
         }.csrf {
-            // h2-console 접근 권한
+            // h2-console access authority
             it.ignoringRequestMatchers(toH2Console())
         }.headers {
-            // h2-console 접근 권한
+            // h2-console access authority
             it.addHeaderWriter(XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
         }.formLogin(withDefaults())
 
         return http.build()
     }
 
-    /**
-     * 이 빈을 등록하면 스프링 컨텍스트에서 SessionRegistry를 주입받을 수 있게 됩니다.
-     * 주로 다른 구성 요소나 서비스에서 이 SessionRegistry를 활용하여
-     * 현재 로그인된 사용자들의 세션 정보를 조회하거나 조작할 수 있습니다.
-     */
     @Bean
     fun sessionRegistry(): SessionRegistry {
         return SessionRegistryImpl()
     }
 
-    /**
-     * 이 코드는 스프링에서 HttpSession 이벤트를 처리하기 위한 빈을 등록하는 부분입니다.
-     * HttpSessionEventPublisher는 HttpSessionListener를 구현한 리스너를 등록하여
-     * HttpSession 이벤트를 감지하고 처리할 수 있도록 도와줍니다.
-     * HttpSessionEventPublisher는 주로 스프링 시큐리티와 함께 사용되며,
-     * 세션 생성, 소멸 등과 같은 세션 관련 이벤트를 감지하여 처리하는 데 활용됩니다.
-     * 이를 통해 보안 관련 이벤트를 처리하거나 특정 세션의 타임아웃 등을 관리할 수 있습니다.
-     * 이 빈을 등록하면 스프링 컨텍스트에서 HttpSessionEventPublisher를 주입받을 수 있게 됩니다.
-     * 이렇게 등록된 빈은 스프링이 서블릿 컨테이너에서 HttpSession 이벤트를 받아들이고
-     * 이를 스프링 이벤트로 변환하는 역할을 합니다.
-     */
     @Bean
     fun httpSessionEventPublisher(): HttpSessionEventPublisher {
         return HttpSessionEventPublisher()
